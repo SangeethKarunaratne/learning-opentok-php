@@ -102,6 +102,53 @@ $app->get('/room/:name', 'cors', function($name) use ($app) {
 });
 
 /**
+ * GET /room/:name
+ */
+$app->get('/room/subscriber/:name', 'cors', function($name) use ($app) {
+
+    // if a room name is already associated with a session ID
+    if ($app->storage->exists($name)) {
+
+        // fetch the sessionId from local storage
+        $app->sessionId = $app->storage[$name];
+
+        $connectionMetaData = "username=SUB_USER,userLevel=4";
+
+        // generate token
+        $token = $app->opentok->generateToken($app->sessionId,array('role' => RoleConstants::SUBSCRIBER, 'expireTime' => time()+(7 * 24 * 60 * 60), 'data' =>  $connectionMetaData));
+        $responseData = array(
+            'apiKey' => $app->apiKey,
+            'sessionId' => $app->sessionId,
+            'token'=>$token
+        );
+
+        $app->response->headers->set('Content-Type', 'application/json');
+        echo json_encode($responseData);
+    }
+    else {
+        $session = $app->opentok->createSession(array(
+            'mediaMode' => MediaMode::ROUTED
+        ));
+
+        // store the sessionId into local
+        $app->storage[$name] = $session->getSessionId();
+        
+        $connectionMetaData = "username=SUB_USER,userLevel=4";
+
+        // generate token
+        $token = $app->opentok->generateToken($app->sessionId,array('role' => RoleConstants::SUBSCRIBER, 'expireTime' => time()+(7 * 24 * 60 * 60), 'data' =>  $connectionMetaData));
+        $responseData = array(
+            'apiKey' => $app->apiKey,
+            'sessionId' => $session->getSessionId(),
+            'token'=>$token
+        );
+
+        $app->response->headers->set('Content-Type', 'application/json');
+        echo json_encode($responseData);
+    }
+});
+
+/**
  * POST /archive/start
  */
 $app->post('/archive/start', 'cors', function () use ($app) {
