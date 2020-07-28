@@ -104,7 +104,7 @@ $app->get('/room/:name', 'cors', function($name) use ($app) {
 /**
  * GET /room/:name
  */
-$app->get('/room/subscriber/:name', 'cors', function($name) use ($app) {
+$app->get('/subscriber/:name', 'cors', function($name) use ($app) {
 
     // if a room name is already associated with a session ID
     if ($app->storage->exists($name)) {
